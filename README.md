@@ -4,8 +4,4 @@
 
 ## [API文件](https://docs.google.com/document/d/1Nwc3CfPd3YkT6qtKus5A8RUsG_Py7kxJlcYJv9lmyUM/edit#heading=h.nee3gqf87xwb)
 
-## 資料庫 - 資料表規劃
-* 揪團資料庫
-
-    1.[揪團資料庫─資料型態表](https://docs.google.com/spreadsheets/d/1FLy5JTszTBw7r-YYCXImqHh12D2NEJKSS0ZlvEhrZ7g/edit?usp=sharing)
-    2.[揪團資料庫─資料呈現表](https://docs.google.com/spreadsheets/d/16YHBAoPphquBzfzkNdWiiWX03xVEmGklYgvzX6tbmT0/edit?usp=sharing)
+## [資料型態表](https://docs.google.com/spreadsheets/d/1FLy5JTszTBw7r-YYCXImqHh12D2NEJKSS0ZlvEhrZ7g/edit?usp=sharing)
