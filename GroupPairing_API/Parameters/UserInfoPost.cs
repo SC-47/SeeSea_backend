@@ -6,6 +6,7 @@
 
 namespace GroupPairing_API.Parameters
 {
+    using GroupPairing_API;
     using System.ComponentModel.DataAnnotations;
 
     /// <summary>

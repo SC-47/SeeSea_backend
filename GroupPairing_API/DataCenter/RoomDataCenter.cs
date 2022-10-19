@@ -48,7 +48,7 @@ namespace GroupPairing_API
         public void PostRoom(ActivityRoomPost activityRoomInput, DateTime dateTime, string dateString)
         {
             //新增一筆ActivityRoom資料
-            ActivityRoom activityRoom = new ActivityRoom
+            ActivityRoom activityRoom = new()
             {
                 HostId = activityRoomInput.HostId,
                 ActivityName = activityRoomInput.ActivityName,
@@ -101,7 +101,7 @@ namespace GroupPairing_API
         public IEnumerable<ActivityRoom> GetRoom(int activityId)
         {
             //回傳ActivityID的ActivityRoom
-            return this.SeeSeaTestContext.ActivityRooms.Where(room => room.ActivityId == activityId);
+            return SeeSeaTestContext.ActivityRooms.Where(room => room.ActivityId == activityId);
         }
 
         /// <summary>
@@ -112,7 +112,7 @@ namespace GroupPairing_API
         public ActivityRoom GetNonFullRoom(int activityId)
         {
             //回傳ActivityID的ActivityRoom
-            return this.SeeSeaTestContext.ActivityRooms.Where(room => room.ActivityId == activityId && room.ActivityStatusCode == (int)Global.ActivityStatus.PAIRING).SingleOrDefault();
+            return SeeSeaTestContext.ActivityRooms.Where(room => room.ActivityId == activityId && room.ActivityStatusCode == (int)Global.ActivityStatus.PAIRING).SingleOrDefault();
         }
 
         /// <summary>
@@ -123,7 +123,7 @@ namespace GroupPairing_API
         public ActivityRoom GetActiveRoom(int activityId)
         {
             //回傳指定AcitivtyID的「未完成」的活動房間(未完成包含兩種狀態：揪團中以及滿員但尚未出團)
-            return this.GetActiveRoom().Where(room => room.ActivityId == activityId).SingleOrDefault();
+            return GetActiveRoom().Where(room => room.ActivityId == activityId).SingleOrDefault();
         }
 
         /// <summary>
@@ -134,7 +134,7 @@ namespace GroupPairing_API
         public ActivityRoomDto GetRoomDto(int activityId)
         {
             //將指定房間ID的活動房間以DTO型式回傳
-            return this.ChangeActivityRoomToDto(this.GetRoom(activityId)).SingleOrDefault();
+            return ChangeActivityRoomToDto(GetRoom(activityId)).SingleOrDefault();
         }
 
         /// <summary>
@@ -144,7 +144,7 @@ namespace GroupPairing_API
         public IEnumerable<ActivityRoomDto> GetRoomDto()
         {
             //將所有活動房間列表以DTO型式回傳
-            return this.ChangeActivityRoomToDto(this.SeeSeaTestContext.ActivityRooms);
+            return ChangeActivityRoomToDto(SeeSeaTestContext.ActivityRooms);
         }
 
         /// <summary>
@@ -155,7 +155,7 @@ namespace GroupPairing_API
         public IEnumerable<ActivityRoomDto> GetRoomDto(IEnumerable<ActivityRoom> activityRooms)
         {
             //將結果回傳
-            return this.ChangeActivityRoomToDto(activityRooms);
+            return ChangeActivityRoomToDto(activityRooms);
         }
 
         /// <summary>
@@ -169,13 +169,13 @@ namespace GroupPairing_API
             List<int> activityIDList = Global.ConvertStringToIntList(activityIDs);
 
             //初始化結果列表(輸出類別為"ActivityRoomDto")
-            List<ActivityRoomDto> result = new List<ActivityRoomDto>();
+            List<ActivityRoomDto> result = new();
 
             //將參數陣列取出與ActivityRoom資料表中ActivityID相同的房間
             foreach (int activityID in activityIDList)
             {
                 //找出ActivityRoom中是否有與輸入的ActivityID相同的房間資訊
-                var activityRoomDto = this.GetRoomDto(activityID);
+                var activityRoomDto = GetRoomDto(activityID);
 
                 //若有與輸入的ActivityID相同的房間資訊，則將結果加入至輸出串列中
                 if (activityRoomDto != null)
@@ -195,7 +195,7 @@ namespace GroupPairing_API
         public IEnumerable<ActivityRoomDto> GetActiveRoomDto()
         {
             //回傳所有「未完成」的活動房間列表(未完成包含兩種狀態：揪團中以及滿員但尚未出團)，以DTO型式回傳
-            return this.GetRoomDto(this.GetActiveRoom());
+            return GetRoomDto(GetActiveRoom());
         }
 
         /// <summary>
@@ -209,13 +209,13 @@ namespace GroupPairing_API
         public IEnumerable<ActivityRoomDto> GetActiveRoomDtoBySelector(string divingType, string property, string area, string estimateCost)
         {
             //取得所有「未完成」的活動房間列表(未完成包含兩種狀態：揪團中以及滿員但尚未出團)
-            IEnumerable<ActivityRoom> result = this.GetActiveRoom();
+            IEnumerable<ActivityRoom> result = GetActiveRoom();
 
             //若有對潛水類型進行篩選，則進入潛水類型篩選判斷
             if (!string.IsNullOrWhiteSpace(divingType))
             {
                 List<int> divingCodeList = Global.ConvertStringToIntList(divingType);
-                if (divingCodeList.Count() == Global.ONE)
+                if (divingCodeList.Count == Global.ONE)
                 {
                     result = result.Where(room => room.DivingTypeCode == divingCodeList.First());
                 }
@@ -225,7 +225,7 @@ namespace GroupPairing_API
             if (!string.IsNullOrEmpty(property))
             {
                 List<int> propertyCodeList = Global.ConvertStringToIntList(property);
-                switch (propertyCodeList.Count())
+                switch (propertyCodeList.Count)
                 {
                     case 1:
                         result = result.Where(room => room.ActivityPropertyCode == propertyCodeList.First());
@@ -243,7 +243,7 @@ namespace GroupPairing_API
             if (!string.IsNullOrEmpty(area))
             {
                 List<int> areaCodeList = Global.ConvertStringToIntList(area);
-                switch (areaCodeList.Count())
+                switch (areaCodeList.Count)
                 {
                     case 1:
                         result = result.Where(room => room.ActivityAreaCode == areaCodeList.First());
@@ -277,7 +277,7 @@ namespace GroupPairing_API
             }
 
             //將篩選完結果回傳出去
-            return this.ChangeActivityRoomToDto(result);
+            return ChangeActivityRoomToDto(result);
         }
 
         /// <summary>
@@ -287,7 +287,7 @@ namespace GroupPairing_API
         public IEnumerable<ActivityRoomUserRoomDto> GetRoomUserRoomDto()
         {
             //將結果回傳
-            return this.ChangeActivityRoomToUserRoomDto(this.SeeSeaTestContext.ActivityRooms);
+            return ChangeActivityRoomToUserRoomDto(SeeSeaTestContext.ActivityRooms);
         }
 
         /// <summary>
@@ -298,10 +298,10 @@ namespace GroupPairing_API
         public IEnumerable<ActivityRoomUserRoomDto> GetRoomUserRoomDto(List<int> activityIDList)
         {
             //取得所有房間列表，並轉換成Dto
-            IEnumerable<ActivityRoomUserRoomDto> activityRooms = this.GetRoomUserRoomDto();
+            IEnumerable<ActivityRoomUserRoomDto> activityRooms = GetRoomUserRoomDto();
 
             //初始化結果列表(輸出類別為"ActivityRoomDto")
-            List<ActivityRoomUserRoomDto> result = new List<ActivityRoomUserRoomDto>();
+            List<ActivityRoomUserRoomDto> result = new();
 
             //將參數陣列取出與ActivityRoom資料表中ActivityID相同的房間
             foreach (int activityID in activityIDList)
@@ -328,7 +328,7 @@ namespace GroupPairing_API
         public IEnumerable<ActivityRoomDivingPointDto> GetActiveRoomDivingPointDto(int divingPointId)
         {
             //找出ActivityRoom中是否有與輸入的divingPointId相同的房間資訊，回傳輸出串列結果
-            return this.ChangeActivityRoomToDivingPointDto(this.GetActiveRoom().Where(room => room.ActivityPlaceCode == divingPointId));
+            return ChangeActivityRoomToDivingPointDto(GetActiveRoom().Where(room => room.ActivityPlaceCode == divingPointId));
         }
 
         /// <summary>
@@ -385,35 +385,35 @@ namespace GroupPairing_API
             int activityID = targetRoom.ActivityId;
 
             //刪除該活動ID的留言資料
-            var messages = this.SeeSeaTestContext.MessageBoards.Where(message => message.ActivityId == activityID);
+            var messages = SeeSeaTestContext.MessageBoards.Where(message => message.ActivityId == activityID);
             foreach (var message in messages)
             {
-                this.SeeSeaTestContext.MessageBoards.Remove(message);
+                SeeSeaTestContext.MessageBoards.Remove(message);
             }
 
             //從資料庫中刪除該活動ID的報名者清單
-            var applicants = this.SeeSeaTestContext.ActivityApplicants.Where(applicant => applicant.ActivityId == activityID);
+            var applicants = SeeSeaTestContext.ActivityApplicants.Where(applicant => applicant.ActivityId == activityID);
             foreach (var applicant in applicants)
             {
-                this.SeeSeaTestContext.ActivityApplicants.Remove(applicant);
+                SeeSeaTestContext.ActivityApplicants.Remove(applicant);
             }
 
             //從資料庫中刪除該活動的參加者清單
-            var participants = this.SeeSeaTestContext.ActivityParticipants.Where(participant => participant.ActivityId == activityID);
+            var participants = SeeSeaTestContext.ActivityParticipants.Where(participant => participant.ActivityId == activityID);
             foreach (var participant in participants)
             {
-                this.SeeSeaTestContext.ActivityParticipants.Remove(participant);
+                SeeSeaTestContext.ActivityParticipants.Remove(participant);
             }
 
             //從使用者的關注清單中移除該活動
-            var favoriteRooms = this.SeeSeaTestContext.UserFavoriteActivities.Where(user => user.FavoriteActivityId == activityID);
+            var favoriteRooms = SeeSeaTestContext.UserFavoriteActivities.Where(user => user.FavoriteActivityId == activityID);
             foreach (var favoriteRoom in favoriteRooms)
             {
-                this.SeeSeaTestContext.UserFavoriteActivities.Remove(favoriteRoom);
+                SeeSeaTestContext.UserFavoriteActivities.Remove(favoriteRoom);
             }
 
             //從資料庫中刪除指定活動
-            this.SeeSeaTestContext.ActivityRooms.Remove(targetRoom);
+            SeeSeaTestContext.ActivityRooms.Remove(targetRoom);
         }
 
         /// <summary>
@@ -486,7 +486,7 @@ namespace GroupPairing_API
         /// <returns>If the data exists, return true. Otherwise, return false.</returns>
         public bool IsApplicant(int activityId, int userId)
         {
-            return this.SeeSeaTestContext.ActivityApplicants
+            return SeeSeaTestContext.ActivityApplicants
                     .Where(user => user.ActivityId == activityId && user.ApplicantId == userId)
                     .Any();
         }
@@ -558,7 +558,7 @@ namespace GroupPairing_API
         /// <returns>If the data exists, return true. Otherwise, return false.</returns>
         public bool IsParticipant(int activityId, int userId)
         {
-            return this.SeeSeaTestContext.ActivityParticipants
+            return SeeSeaTestContext.ActivityParticipants
                     .Where(user => user.ActivityId == activityId && user.ParticipantId == userId)
                     .Any();
         }
@@ -569,8 +569,8 @@ namespace GroupPairing_API
         /// <param name="target">The target participant.</param>
         public void RemoveParticipant(ActivityParticipant target)
         {
-            this.SeeSeaTestContext.Remove(target);
-            ActivityRoom activityRoom = this.GetRoom(target.ActivityId).SingleOrDefault();
+            SeeSeaTestContext.Remove(target);
+            ActivityRoom activityRoom = GetRoom(target.ActivityId).SingleOrDefault();
 
             if (activityRoom.CurrentParticipantNumber == activityRoom.ParticipantNumber || activityRoom.ActivityStatusCode == (int)Global.ActivityStatus.CONFIRMED)
             {
@@ -607,7 +607,7 @@ namespace GroupPairing_API
         /// <returns>If message exists in the database , return true. Otherwise, return false.</returns>
         public bool IsMessageExist(MessagePost messageInput)
         {
-            return this.SeeSeaTestContext.MessageBoards
+            return SeeSeaTestContext.MessageBoards
                 .Any(message => message.ActivityId == messageInput.ActivityId && message.UserId == messageInput.UserId && message.Message.Equals(messageInput.Message) && message.MessageDateTime.Equals(DateTime.ParseExact(messageInput.MessageDateTime, "yyyy-MM-dd HH:mm", null)));
         }
 
@@ -618,7 +618,7 @@ namespace GroupPairing_API
         /// <returns>If message exists in the database , return the id of the message. Otherwise, return false.</returns>
         public int GetMessageID(MessagePost messageInput)
         {
-            return this.SeeSeaTestContext.MessageBoards
+            return SeeSeaTestContext.MessageBoards
                 .Where(message => message.ActivityId == messageInput.ActivityId && message.UserId == messageInput.UserId && message.Message.Equals(messageInput.Message) && message.MessageDateTime.Equals(DateTime.ParseExact(messageInput.MessageDateTime, "yyyy-MM-dd HH:mm", null)))
                 .Select(message => message.MessageId)
                 .SingleOrDefault();
@@ -631,7 +631,7 @@ namespace GroupPairing_API
         public void DeleteMessage(MessageBoard targetMessage)
         {
             //從資料庫中刪除指定留言
-            this.SeeSeaTestContext.MessageBoards.Remove(targetMessage);
+            SeeSeaTestContext.MessageBoards.Remove(targetMessage);
         }
 
         /// <summary>
@@ -642,7 +642,7 @@ namespace GroupPairing_API
         public List<ActivityRoomUserRoomDto> GetUserFavoriteRoomList(int userId)
         {
             //從UserFavoriteActivity資料表中找出UserID與輸入的UserID相同的房間列表，判斷該UserID中的房間那些是正在進行中(揪團中或是人員已滿未宣告)，回傳輸出結果
-            return this.GetRoomUserRoomDto(this.UserDataCenter.GetUserFavoriteRoomList(userId)).ToList();
+            return GetRoomUserRoomDto(UserDataCenter.GetUserFavoriteRoomList(userId)).ToList();
         }
 
         /// <summary>
@@ -653,7 +653,7 @@ namespace GroupPairing_API
         public List<ActivityRoomUserRoomDto> GetUserParticipatingRoomList(int userId)
         {
             //從ActivityParticipant資料表中找出ApplicantID與輸入的UserID相同的房間列表，判斷該UserID中的房間那些是尚未出團的揪團活動，回傳輸出結果
-            return this.GetRoomUserRoomDto(this.UserDataCenter.GetUserParticipatingRoomList(userId)).ToList();
+            return GetRoomUserRoomDto(UserDataCenter.GetUserParticipatingRoomList(userId)).ToList();
         }
 
         /// <summary>
@@ -664,7 +664,7 @@ namespace GroupPairing_API
         public List<ActivityRoomUserRoomDto> GetUserSigningUpRoomList(int userId)
         {
             //從ActivityApplicant資料表中找出ApplicantID與輸入的UserID相同的房間列表，判斷該UserID中的房間那些是已出團的揪團活動，回傳輸出結果
-            return this.GetRoomUserRoomDto(this.UserDataCenter.GetUserSigningUpRoomList(userId)).ToList();
+            return GetRoomUserRoomDto(UserDataCenter.GetUserSigningUpRoomList(userId)).ToList();
         }
 
         /// <summary>
@@ -675,7 +675,7 @@ namespace GroupPairing_API
         public List<ActivityRoomUserRoomDto> GetUserEndingRoomList(int userId)
         {
             //從ActivityParticipant資料表中找出ApplicantID與輸入的UserID相同的房間列表，判斷該UserID中的房間那些是已出團的揪團活動，回傳輸出結果
-            return this.GetRoomUserRoomDto(this.UserDataCenter.GetUserEndingRoomList(userId)).ToList();
+            return GetRoomUserRoomDto(UserDataCenter.GetUserEndingRoomList(userId)).ToList();
         }
 
         /// <summary>
@@ -685,7 +685,7 @@ namespace GroupPairing_API
         private IEnumerable<ActivityRoom> GetActiveRoom()
         {
             //回傳所有「未完成」的活動房間列表(未完成包含兩種狀態：揪團中以及滿員但尚未出團)
-            return this.SeeSeaTestContext.ActivityRooms.Where(room => room.ActivityStatusCode == (byte)Global.ActivityStatus.PAIRING || room.ActivityStatusCode == (byte)Global.ActivityStatus.FULL);
+            return SeeSeaTestContext.ActivityRooms.Where(room => room.ActivityStatusCode == (byte)Global.ActivityStatus.PAIRING || room.ActivityStatusCode == (byte)Global.ActivityStatus.FULL);
         }
 
         /// <summary>
@@ -703,35 +703,35 @@ namespace GroupPairing_API
                         hostUserInfo => hostUserInfo.UserId,
                         (activityRoom, hostUserInfo) => new
                         {
-                            ActivityId = activityRoom.ActivityId,
-                            HostId = activityRoom.HostId,
+                            activityRoom.ActivityId,
+                            activityRoom.HostId,
                             HostName = hostUserInfo.UserNickName ?? hostUserInfo.UserName,
                             HostImage = hostUserInfo.UserImage,
-                            ActivityName = activityRoom.ActivityName,
-                            ActivityStatusCode = activityRoom.ActivityStatusCode,
+                            activityRoom.ActivityName,
+                            activityRoom.ActivityStatusCode,
                             ActivityPicture = activityRoom.ActivityPicture ?? string.Empty,
-                            CurrentParticipantNumber = activityRoom.CurrentParticipantNumber,
-                            ParticipantNumber = activityRoom.ParticipantNumber,
-                            DivingTypeCode = activityRoom.DivingTypeCode,
-                            DivingLevelCode = activityRoom.DivingLevelCode,
-                            ActivityPropertyCode = activityRoom.ActivityPropertyCode,
+                            activityRoom.CurrentParticipantNumber,
+                            activityRoom.ParticipantNumber,
+                            activityRoom.DivingTypeCode,
+                            activityRoom.DivingLevelCode,
+                            activityRoom.ActivityPropertyCode,
                             ActivityDate = activityRoom.ActivityDateTime.Date.ToString("yyyy-MM-dd, ddd"),
-                            ActivityTime = activityRoom.ActivityDateTime.TimeOfDay.ToString().Substring(0, 5),
-                            ActivityAreaCode = activityRoom.ActivityAreaCode,
-                            ActivityPlace = this.SeeSeaTestContext.DivingPoints.Where(point => point.DivingPointId == activityRoom.ActivityPlaceCode).Select(point => point.DivingPointName).SingleOrDefault(),
-                            TransportationCode = activityRoom.TransportationCode,
+                            ActivityTime = activityRoom.ActivityDateTime.TimeOfDay.ToString()[..5],
+                            activityRoom.ActivityAreaCode,
+                            ActivityPlace = SeeSeaTestContext.DivingPoints.Where(point => point.DivingPointId == activityRoom.ActivityPlaceCode).Select(point => point.DivingPointName).SingleOrDefault(),
+                            activityRoom.TransportationCode,
                             ActivityDescription = activityRoom.ActivityDescription ?? string.Empty,
                             MeetingPlace = activityRoom.MeetingPlace ?? string.Empty,
-                            EstimateCostCode = activityRoom.EstimateCostCode,
-                            Message = this.SeeSeaTestContext.MessageBoards.Where(message => message.ActivityId == activityRoom.ActivityId),
-                            ApplicantImage = this.SeeSeaTestContext.ActivityApplicants
+                            activityRoom.EstimateCostCode,
+                            Message = SeeSeaTestContext.MessageBoards.Where(message => message.ActivityId == activityRoom.ActivityId),
+                            ApplicantImage = SeeSeaTestContext.ActivityApplicants
                                                 .Where(applicant => applicant.ActivityId == activityRoom.ActivityId)
                                                 .Join(
                                                         SeeSeaTestContext.UserInfoes,
                                                         applicant => applicant.ApplicantId,
                                                         userInfo => userInfo.UserId,
                                                         (applicant, userInfo) => userInfo.UserImage),
-                            FavoriteNumber = this.SeeSeaTestContext.UserFavoriteActivities.Where(activity => activity.FavoriteActivityId == activityRoom.ActivityId).Count()
+                            FavoriteNumber = SeeSeaTestContext.UserFavoriteActivities.Where(activity => activity.FavoriteActivityId == activityRoom.ActivityId).Count()
                         })
                 .OrderBy(activityRoom => activityRoom.ActivityId)
                 .AsEnumerable();
@@ -761,7 +761,7 @@ namespace GroupPairing_API
                                 ActivityDescription = activityRoom.ActivityDescription,
                                 MeetingPlace = activityRoom.MeetingPlace,
                                 EstimateCost = Global.GetDescription((Global.EstimateCost)Enum.ToObject(typeof(Global.EstimateCost), activityRoom.EstimateCostCode)),
-                                MessageBoard = this.ChangeMessageToDto(activityRoom.Message).ToList(),
+                                MessageBoard = ChangeMessageToDto(activityRoom.Message).ToList(),
                                 ApplicantImage = activityRoom.ApplicantImage.ToList() ?? new List<string>(),
                                 FavoriteNumber = (byte)activityRoom.FavoriteNumber
                             });
@@ -785,11 +785,11 @@ namespace GroupPairing_API
                         divingPoint => divingPoint.DivingPointId,
                         (activityRoom, divingPoint) => new
                         {
-                            ActivityId = activityRoom.ActivityId,
-                            HostId = activityRoom.HostId,
-                            ActivityName = activityRoom.ActivityName,
-                            ActivityStatusCode = activityRoom.ActivityStatusCode,
-                            DivingTypeCode = activityRoom.DivingTypeCode,
+                            activityRoom.ActivityId,
+                            activityRoom.HostId,
+                            activityRoom.ActivityName,
+                            activityRoom.ActivityStatusCode,
+                            activityRoom.DivingTypeCode,
                             ActivityPlace = divingPoint.DivingPointName
                         })
                 .OrderBy(activityRoom => activityRoom.ActivityId)
@@ -817,7 +817,7 @@ namespace GroupPairing_API
         /// </summary>
         /// <param name="input">The inputting ActivityRoom data.</param>
         /// <returns>The DTO form of ActivityRoom data. (for DivingPoint List)</returns>
-        private IEnumerable<ActivityRoomDivingPointDto> ChangeActivityRoomToDivingPointDto(IEnumerable<ActivityRoom> input)
+        private static IEnumerable<ActivityRoomDivingPointDto> ChangeActivityRoomToDivingPointDto(IEnumerable<ActivityRoom> input)
         {
             //先將ActivityRoom及UserBasicInfo兩者透過ActivityId Join起來，得到HostName及HostImage
             var activityRoom = input

@@ -6,14 +6,18 @@
 
 namespace GroupPairing_API.DataCenter
 {
+    using GroupPairing_API;
+    using GroupPairing_API.Dtos;
+    using GroupPairing_API.Interface;
+    using GroupPairing_API.Models.Db;
+    using GroupPairing_API.Parameters;
+    using GroupPairing_API.Repository;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
     using System.Net.Mail;
-    using GroupPairing_API.Dtos;
-    using GroupPairing_API.Models.Db;
-    using GroupPairing_API.Parameters;
+    using System.Threading;
 
     /// <summary>
     /// The Algorithmic logic of the user's data about UserInfo_API.
@@ -24,15 +28,22 @@ namespace GroupPairing_API.DataCenter
         /// Initializes a new instance of the <see cref="UserDataCenter" /> class.
         /// </summary>
         /// <param name="seeSeaTestContext">All the information about the datasheets from the database named SeeSeaTest.</param>
-        public UserDataCenter(SeeSeaTestContext seeSeaTestContext)
+        /// <param name="seeSeaTestRepository">All the information about the datasheets from the database named SeeSeaTest.</param>
+        public UserDataCenter(SeeSeaTestContext seeSeaTestContext, ISeeSeaTestRepository seeSeaTestRepository)
         {
             SeeSeaTestContext = seeSeaTestContext;
+            Repository = seeSeaTestRepository;
         }
 
         /// <summary>
         /// Gets the SeeSeaContext class.
         /// </summary>
         public SeeSeaTestContext SeeSeaTestContext { get; }
+
+        /// <summary>
+        /// All the information about the datasheets from the database named SeeSeaTest.
+        /// </summary>
+        private readonly ISeeSeaTestRepository Repository;
 
         /// <summary>
         /// Check the inputting account whether existing in the database named SeeSeaTest.
@@ -96,16 +107,10 @@ namespace GroupPairing_API.DataCenter
         /// Activate user's account.
         /// </summary>
         /// <param name="emailId">The querying Id of the email.</param>
-        public void SetAccountActive(string emailId)
+        public bool SetAccountActive(string emailId)
         {
-            //根據EmailID搜尋指定User
-            UserInfo userInfo = this.SeeSeaTestContext.UserInfoes.Where(user => user.UserEmailId.Equals(emailId)).SingleOrDefault();
-
-            //若該User存在，則啟動帳號權限
-            if (userInfo != null)
-            {
-                userInfo.Approved = true;
-            }
+            // 透過使用者Email啟用使用者帳號
+            return Repository.SetAccountActive(emailId);
         }
 
         /// <summary>
@@ -115,12 +120,12 @@ namespace GroupPairing_API.DataCenter
         public void SendValidationEmail(int userId)
         {
             //根據UserID查找特定使用者
-            UserInfo user = this.GetUserInfo(userId);
+            UserInfo user = GetUserInfo(userId);
 
             if (user != null)
             {
                 //初始化MailMessage
-                MailMessage msg = new MailMessage();
+                MailMessage msg = new();
 
                 //增加寄件人
                 msg.To.Add($"{user.UserEmail}");
@@ -150,18 +155,18 @@ namespace GroupPairing_API.DataCenter
 
                 //郵件優先順序 
                 msg.Priority = MailPriority.High;
-                SmtpClient client = new SmtpClient();
+                SmtpClient client = new()
+                {
+                    //寫你的GMail郵箱和密碼 
+                    Credentials = new NetworkCredential("", ""),
 
-                //寫你的GMail郵箱和密碼 
-                client.Credentials = new NetworkCredential("", "");
+                    //Gmail使用的埠 
+                    Port = 587,
+                    Host = "smtp.gmail.com",
 
-                //Gmail使用的埠 
-                client.Port = 587;
-                client.Host = "smtp.gmail.com";
-
-                //經過ssl加密 
-                client.EnableSsl = true;
-                object userState = msg;
+                    //經過ssl加密 
+                    EnableSsl = true
+                };
 
                 //寄送Email
                 client.Send(msg);
@@ -187,12 +192,12 @@ namespace GroupPairing_API.DataCenter
         public void SendPasswordEmail(int userId, string newPassword)
         {
             //根據UserID查找特定使用者
-            UserInfo user = this.GetUserInfo(userId);
+            UserInfo user = GetUserInfo(userId);
 
             if (user != null)
             {
                 //初始化MailMessage
-                MailMessage msg = new MailMessage();
+                MailMessage msg = new();
 
                 //增加寄件人
                 msg.To.Add($"{user.UserEmail}");
@@ -221,18 +226,18 @@ namespace GroupPairing_API.DataCenter
 
                 //郵件優先順序 
                 msg.Priority = MailPriority.High;
-                SmtpClient client = new SmtpClient();
+                SmtpClient client = new()
+                {
+                    //寫你的GMail郵箱和密碼 
+                    Credentials = new NetworkCredential("", ""),
 
-                //寫你的GMail郵箱和密碼 
-                client.Credentials = new NetworkCredential("", "");
+                    //Gmail使用的埠 
+                    Port = 587,
+                    Host = "smtp.gmail.com",
 
-                //Gmail使用的埠 
-                client.Port = 587;
-                client.Host = "smtp.gmail.com";
-
-                //經過ssl加密 
-                client.EnableSsl = true;
-                object userState = msg;
+                    //經過ssl加密 
+                    EnableSsl = true
+                };
 
                 //寄送Email
                 client.Send(msg);
@@ -259,7 +264,7 @@ namespace GroupPairing_API.DataCenter
         public bool IsUserIDExist(int userId)
         {
             // 驗證此UserID是否存在於UserInfo資料表中
-            return this.SeeSeaTestContext.UserInfoes.Where(user => user.UserId == userId).Any();
+            return SeeSeaTestContext.UserInfoes.Where(user => user.UserId == userId).Any();
         }
 
         /// <summary>
@@ -308,7 +313,7 @@ namespace GroupPairing_API.DataCenter
                 return null;
             }
 
-            return this.ConvertUnserInfoToUserInfoDto(userInfo);
+            return ConvertUnserInfoToUserInfoDto(userInfo);
         }
 
         /// <summary>
@@ -319,7 +324,7 @@ namespace GroupPairing_API.DataCenter
         public UserInfoDto GetUserInfoDto(int userId)
         {
             // 回傳指定UserId的UserInfoDto資料
-            return this.ConvertUnserInfoToUserInfoDto(this.GetUserInfo(userId));
+            return ConvertUnserInfoToUserInfoDto(GetUserInfo(userId));
         }
 
         /// <summary>
@@ -360,7 +365,7 @@ namespace GroupPairing_API.DataCenter
             userInfo.UserPhone = userInfoInput.UserPhone ?? userInfo.UserPhone;
 
             //帳號未驗證才允許修改Email，並驗證修改過後的Email是否已存在於db中，重新寄發驗證信，否則不允許修改Email
-            if (!userInfo.Approved && !string.IsNullOrEmpty(userInfoInput.UserEmail) && !this.IsEmailExist(userInfoInput.UserEmail))
+            if (!userInfo.Approved && !string.IsNullOrEmpty(userInfoInput.UserEmail) && !IsEmailExist(userInfoInput.UserEmail))
             {
                 userInfo.UserEmail = userInfoInput.UserEmail;
                 userInfo.UserEmailId = Global.GetMd5Method(userInfoInput.UserEmail);
@@ -373,9 +378,9 @@ namespace GroupPairing_API.DataCenter
             }
 
             //更新使用者內容，若該欄位使用者未輸入，則沿用原先資料
-            if(userInfoInput.UserImage != null)
+            if (userInfoInput.UserImage != null)
             {
-                userInfo.UserImage = !userInfoInput.UserImage.FileName.Equals("profilePic.jpg")  ? $@"http://35.221.136.55/image/{dateString}{userInfoInput.UserImage.FileName}" : userInfo.UserImage;
+                userInfo.UserImage = !userInfoInput.UserImage.FileName.Equals("profilePic.jpg") ? $@"http://35.221.136.55/image/{dateString}{userInfoInput.UserImage.FileName}" : userInfo.UserImage;
             }
             userInfo.UserDescription = userInfoInput.UserDescription ?? userInfo.UserDescription;
             userInfo.DivingTypeTag = userInfoInput.DivingTypeTag ?? userInfo.DivingTypeTag;
@@ -427,8 +432,8 @@ namespace GroupPairing_API.DataCenter
                     (favoriteRoom, activityRoom) => new
                     {
                         ActivityId = favoriteRoom.FavoriteActivityId,
-                        UserId = favoriteRoom.UserId,
-                        ActivityStatusCode = activityRoom.ActivityStatusCode
+                        favoriteRoom.UserId,
+                        activityRoom.ActivityStatusCode
                     })
             .Where(roomList => roomList.UserId == userId && (roomList.ActivityStatusCode == (int)Global.ActivityStatus.PAIRING || roomList.ActivityStatusCode == (int)Global.ActivityStatus.FULL || roomList.ActivityStatusCode == (int)Global.ActivityStatus.CONFIRMED))
             .Select(roomList => roomList.ActivityId)
@@ -453,9 +458,9 @@ namespace GroupPairing_API.DataCenter
                         activityRoom => activityRoom.ActivityId,
                         (signingUpRoomList, activityRoom) => new
                         {
-                            ActivityId = activityRoom.ActivityId,
+                            activityRoom.ActivityId,
                             UserId = signingUpRoomList.ApplicantId,
-                            ActivityStatusCode = activityRoom.ActivityStatusCode
+                            activityRoom.ActivityStatusCode
                         })
                 .Where(roomList => roomList.UserId == userId && (roomList.ActivityStatusCode == (int)Global.ActivityStatus.PAIRING || roomList.ActivityStatusCode == (int)Global.ActivityStatus.FULL || roomList.ActivityStatusCode == (int)Global.ActivityStatus.CONFIRMED))
                 .Select(roomList => roomList.ActivityId)
@@ -473,7 +478,7 @@ namespace GroupPairing_API.DataCenter
         public List<int> GetUserParticipatingRoomList(int userId)
         {
             //建立輸出結果
-            List<int> result = new List<int>();
+            List<int> result = new();
 
             //從ActiviryRoom資料表中找出該UserID主辦之房間列表，判斷該UserID中的房間那些是正在進行中(揪團中或是人員已滿未宣告)
             var hostingRoomList = SeeSeaTestContext.ActivityRooms
@@ -488,9 +493,9 @@ namespace GroupPairing_API.DataCenter
                         activityRoom => activityRoom.ActivityId,
                         (participatingRoomList, activityRoom) => new
                         {
-                            ActivityId = activityRoom.ActivityId,
+                            activityRoom.ActivityId,
                             UserId = participatingRoomList.ParticipantId,
-                            ActivityStatusCode = activityRoom.ActivityStatusCode
+                            activityRoom.ActivityStatusCode
                         })
                 .Where(roomList => roomList.UserId == userId && (roomList.ActivityStatusCode == (int)Global.ActivityStatus.PAIRING || roomList.ActivityStatusCode == (int)Global.ActivityStatus.FULL || roomList.ActivityStatusCode == (int)Global.ActivityStatus.CONFIRMED))
                 .Select(roomList => roomList.ActivityId);
@@ -510,7 +515,7 @@ namespace GroupPairing_API.DataCenter
         public List<int> GetUserEndingRoomList(int userId)
         {
             //建立輸出結果
-            List<int> result = new List<int>();
+            List<int> result = new();
 
             //從ActiviryRoom資料表中找出該UserID主辦之房間列表，判斷該UserID中的房間那些是正在進行中(揪團中或是人員已滿未宣告)
             var hostingRoomList = SeeSeaTestContext.ActivityRooms
@@ -526,9 +531,9 @@ namespace GroupPairing_API.DataCenter
                         activityRoom => activityRoom.ActivityId,
                         (participatingRoomList, activityRoom) => new
                         {
-                            ActivityId = activityRoom.ActivityId,
+                            activityRoom.ActivityId,
                             UserId = participatingRoomList.ParticipantId,
-                            ActivityStatusCode = activityRoom.ActivityStatusCode
+                            activityRoom.ActivityStatusCode
                         })
                 .Where(roomList => roomList.UserId == userId && (roomList.ActivityStatusCode == (int)Global.ActivityStatus.DONE && roomList.ActivityStatusCode == (int)Global.ActivityStatus.FAIL_PAIRING))
                 .Select(roomList => roomList.ActivityId)
@@ -549,7 +554,7 @@ namespace GroupPairing_API.DataCenter
         public bool IsActivityIDExist(int activityId)
         {
             // 驗證此ActivityID是否存在於ActivityRoom料表中
-            return this.SeeSeaTestContext.ActivityRooms.Where(room => room.ActivityId == activityId).Any();
+            return SeeSeaTestContext.ActivityRooms.Where(room => room.ActivityId == activityId).Any();
         }
 
         /// <summary>
@@ -560,7 +565,7 @@ namespace GroupPairing_API.DataCenter
         private UserInfoDto ConvertUnserInfoToUserInfoDto(UserInfo userInfo)
         {
             //將UserInfo資料轉換成DTO形式
-            UserInfoDto userInfoDto = new UserInfoDto
+            UserInfoDto userInfoDto = new()
             {
                 UserId = userInfo.UserId,
                 UserAccount = userInfo.UserAccount,
@@ -605,16 +610,16 @@ namespace GroupPairing_API.DataCenter
             int userID = userInfoDto.UserId;
 
             //建立使用者關注房間清單
-            userInfoDto.UserFavoriteRoom = this.GetUserFavoriteRoomList(userID) ?? new List<int>();
+            userInfoDto.UserFavoriteRoom = GetUserFavoriteRoomList(userID) ?? new List<int>();
 
             //建立使用者尚未出團的參加房間清單
-            userInfoDto.UserParticipatingActivity = this.GetUserParticipatingRoomList(userID) ?? new List<int>();
+            userInfoDto.UserParticipatingActivity = GetUserParticipatingRoomList(userID) ?? new List<int>();
 
             //建立使用者報名房間清單
-            userInfoDto.UserSigningUpActivity = this.GetUserSigningUpRoomList(userID) ?? new List<int>();
+            userInfoDto.UserSigningUpActivity = GetUserSigningUpRoomList(userID) ?? new List<int>();
 
             //建立使用者已出團的參加房間清單
-            userInfoDto.UserFinishActivity = this.GetUserEndingRoomList(userID) ?? new List<int>();
+            userInfoDto.UserFinishActivity = GetUserEndingRoomList(userID) ?? new List<int>();
 
             return userInfoDto;
         }

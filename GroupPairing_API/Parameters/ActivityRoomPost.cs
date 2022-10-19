@@ -8,6 +8,7 @@ namespace GroupPairing_API.Parameters
 {
     using System;
     using System.ComponentModel.DataAnnotations;
+    using GroupPairing_API;
     using Microsoft.AspNetCore.Http;
 
     /// <summary>

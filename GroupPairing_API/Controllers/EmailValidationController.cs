@@ -28,7 +28,7 @@ namespace GroupPairing_API.Controllers
         /// <param name="dataCenter">The Algorithmic logic of the data about UserInfo.</param>
         public EmailValidationController(UserDataCenter dataCenter)
         {
-            this.DataCenter = dataCenter;
+            DataCenter = dataCenter;
         }
 
         // GET: api/<UserInfoController>
@@ -38,21 +38,24 @@ namespace GroupPairing_API.Controllers
         /// </summary>
         /// <param name="userEmailId">The user's EmailID.</param>
         /// <returns>If the emailId exist, activate the user's account. Exception for validation, return the string descripting the detail of error.</returns>
-        [HttpGet("{userEmailId}")]
+        [HttpPut("{userEmailId}")]
         public ActionResult ActivateAccount(string userEmailId)
         {
             //嘗試取啟動帳號，若啟動成功回傳"已成功驗證帳號"(200)；若啟動失敗則回傳"發生錯誤，無法驗證帳號"(400)
             try
             {
-                this.DataCenter.SetAccountActive(userEmailId);
-                this.DataCenter.SeeSeaTestContext.SaveChanges();
+                if (DataCenter.SetAccountActive(userEmailId))
+                {
+                    return Ok("已成功驗證帳號");
+                }
+
+                return BadRequest("無法驗證帳號");
             }
             catch (DbUpdateException)
             {
-                return this.BadRequest("發生錯誤，無法驗證帳號");
+                return BadRequest("發生錯誤，無法驗證帳號");
             }
 
-            return this.Ok("已成功驗證帳號");
         }
     }
 }

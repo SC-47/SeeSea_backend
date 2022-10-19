@@ -6,9 +6,10 @@
 
 namespace GroupPairing_API
 {
-    using System.IO;
     using GroupPairing_API.DataCenter;
+    using GroupPairing_API.Interface;
     using GroupPairing_API.Models.Db;
+    using GroupPairing_API.Repository;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
@@ -18,6 +19,7 @@ namespace GroupPairing_API
     using Microsoft.Extensions.FileProviders;
     using Microsoft.Extensions.Hosting;
     using Microsoft.OpenApi.Models;
+    using System.IO;
 
     /// <summary>
     /// The settings of the GroupPairingController.
@@ -30,7 +32,7 @@ namespace GroupPairing_API
         /// <param name="configuration">The setting information.</param>
         public Startup(IConfiguration configuration)
         {
-            this.Configuration = configuration;
+            Configuration = configuration;
         }
 
         /// <summary>
@@ -47,11 +49,17 @@ namespace GroupPairing_API
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "GroupPairing_API", Version = "v1" });
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "SeeSea_Backend", Version = "v1" });
             });
 
             // 加入SeeSeaTestContext及連線字串設定
-            services.AddDbContext<SeeSeaTestContext>(option => option.UseSqlServer(this.Configuration.GetConnectionString("MyTestDbConnectionString")));
+            services.AddDbContext<SeeSeaTestContext>(option => option.UseSqlServer(Configuration.GetConnectionString("SeeSeaTest")));
+
+            // 註冊ISeeSeaTestRepository類別，此類別負責處理與SeeSeaTest資料庫資料存取
+            services.AddScoped<ISeeSeaTestRepository>(sp => new SeeSeaTestRepository(sp.GetRequiredService<SeeSeaTestContext>()));
+
+            // 註冊DivingPointDataCenter類別，此類別負責處理DivingPoint相關的資料運算邏輯
+            services.AddScoped<IDivingPointDataCenter>(sp => new DivingPointDataCenter(sp.GetService<ISeeSeaTestRepository>()));
 
             // 註冊RoomDataCenter類別，此類別負責處理Room相關的資料運算邏輯
             services.AddScoped<RoomDataCenter>();

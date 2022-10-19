@@ -46,7 +46,7 @@ namespace GroupPairing_API.Parameters
         /// <summary>
         /// Gets or sets GroupPairing_API of the assembling place if needed.
         /// </summary>
-        public string? MeetingPlace { get; set; }
+        public string MeetingPlace { get; set; }
 
         /// <summary>
         /// Gets or sets GroupPairing_API of the corresponded code of the estimate cost range of this activity.
