@@ -9,6 +9,7 @@ namespace GroupPairing_API
     using GroupPairing_API.DataCenter;
     using GroupPairing_API.Interface;
     using GroupPairing_API.Models.Db;
+    using GroupPairing_API.Module;
     using GroupPairing_API.Repository;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
@@ -51,6 +52,9 @@ namespace GroupPairing_API
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "SeeSea_Backend", Version = "v1" });
             });
+
+            // 註冊ILogger類別，此類別負責處理錯誤Log寫入
+            services.AddSingleton<ILogger>(new Logger(Configuration.GetSection("LogPath").Value));
 
             // 加入SeeSeaTestContext及連線字串設定
             services.AddDbContext<SeeSeaTestContext>(option => option.UseSqlServer(Configuration.GetConnectionString("SeeSeaTest")));
@@ -95,6 +99,8 @@ namespace GroupPairing_API
             app.UseRouting();
 
             app.UseAuthorization();
+
+            app.UseMiddleware<RequestLogMiddleware>();
 
             app.UseEndpoints(endpoints =>
             {

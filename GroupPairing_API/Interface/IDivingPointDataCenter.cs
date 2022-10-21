@@ -1,8 +1,14 @@
-﻿using GroupPairing_API.Dtos;
-using System.Collections.Generic;
+﻿//-----------------------------------------------------------------------
+// <copyright file="IDivingPointDataCenter.cs" company="Cmoney">
+//     Company copyright tag.
+// </copyright>
+//-----------------------------------------------------------------------
 
 namespace GroupPairing_API.Interface
 {
+    using GroupPairing_API.Dtos;
+    using System.Collections.Generic;
+
     /// <summary>
     /// The Algorithmic logic of the data about the local diving points.
     /// </summary>

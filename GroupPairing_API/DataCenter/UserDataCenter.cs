@@ -11,13 +11,11 @@ namespace GroupPairing_API.DataCenter
     using GroupPairing_API.Interface;
     using GroupPairing_API.Models.Db;
     using GroupPairing_API.Parameters;
-    using GroupPairing_API.Repository;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
     using System.Net.Mail;
-    using System.Threading;
 
     /// <summary>
     /// The Algorithmic logic of the user's data about UserInfo_API.
@@ -107,10 +105,10 @@ namespace GroupPairing_API.DataCenter
         /// Activate user's account.
         /// </summary>
         /// <param name="emailId">The querying Id of the email.</param>
-        public bool SetAccountActive(string emailId)
+        public void SetAccountActive(string emailId)
         {
             // 透過使用者Email啟用使用者帳號
-            return Repository.SetAccountActive(emailId);
+            Repository.SetAccountActive(emailId);
         }
 
         /// <summary>
@@ -275,10 +273,7 @@ namespace GroupPairing_API.DataCenter
         public UserInfo GetUserInfo(int userID)
         {
             //return與輸入userID相同的UserInfo
-            UserInfo userInfo = SeeSeaTestContext.UserInfoes
-                .Where(user => user.UserId == userID)
-                .SingleOrDefault();
-            return userInfo;
+            return Repository.GetUserInfo(userID);
         }
 
         /// <summary>

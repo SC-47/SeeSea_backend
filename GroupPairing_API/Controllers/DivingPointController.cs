@@ -17,18 +17,18 @@ namespace GroupPairing_API.Controllers
     public class DivingPointController : ControllerBase
     {
         /// <summary>
-        /// Gets the SeeSeaContext class.
-        /// </summary>
-        public readonly IDivingPointDataCenter DivingPointDataCenter;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="DivingPointController" /> class.
+        /// Initializes a new instance of the <see cref="DivingPointController"/> class.
         /// </summary>
         /// <param name="divingPointDataCenter">The Algorithmic logic of the data about the local diving points.</param>
         public DivingPointController(IDivingPointDataCenter divingPointDataCenter)
         {
             DivingPointDataCenter = divingPointDataCenter;
         }
+
+        /// <summary>
+        /// The Algorithmic logic of the data about the local diving points.
+        /// </summary>
+        private readonly IDivingPointDataCenter DivingPointDataCenter;
 
         // GET: api/<DivingPointController>
 

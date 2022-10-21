@@ -6,11 +6,6 @@
 
 namespace GroupPairing_API.Controllers
 {
-    using System;
-    using System.IO;
-    using System.Linq;
-    using System.Net;
-    using System.Threading.Tasks;
     using GroupPairing_API;
     using GroupPairing_API.DataCenter;
     using GroupPairing_API.Dtos;
@@ -18,6 +13,11 @@ namespace GroupPairing_API.Controllers
     using GroupPairing_API.Parameters;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.EntityFrameworkCore;
+    using System;
+    using System.IO;
+    using System.Linq;
+    using System.Net;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// The WebAPI controller related to GroupPairing.
@@ -32,7 +32,7 @@ namespace GroupPairing_API.Controllers
         private readonly RoomDataCenter RoomDataCenter;
 
         /// <summary>
-        /// The Algorithmic logic of the data about GroupPairing_API.
+        /// The Algorithmic logic of the data about UserInfo.
         /// </summary>
         private readonly UserDataCenter UserDataCenter;
 
@@ -57,54 +57,10 @@ namespace GroupPairing_API.Controllers
         [HttpPost("Room")]
         public async Task<IActionResult> PostRoomAsync([FromForm] ActivityRoomPost activityRoomInput)
         {
-            UserInfo user = UserDataCenter.GetUserInfo(activityRoomInput.HostId);
+            // 若成功新增，回傳"新增成功"(201)；若失敗回傳錯誤訊息(400)
+            string errorMessage = await RoomDataCenter.PostRoomAsync(activityRoomInput);
 
-            //判斷主辦人ID是否存在於UserID列表中，若沒有則回傳"該主辦人ID不存在，無法新增資料"(400)
-            if (user == null)
-            {
-                return BadRequest("該主辦人ID不存在，無法新增資料");
-            }
-
-            //判斷該ID的帳號是否已經啟用過，若沒有則回傳"該帳號尚未驗證，無法新增資料"(400)
-            if (!user.Approved)
-            {
-                return BadRequest("該帳號尚未驗證，無法新增資料");
-            }
-
-            string dateString = string.Empty;
-
-            //判斷日期格式輸入是否正確，若否則回傳"活動日期輸入格式錯誤，無法新增資料"(400)
-            if (DateTime.TryParse(activityRoomInput.ActivityDateTime, out DateTime dateTime))
-            {
-                //利用Validation Attribute先驗證輸入資料是否符合規範，再判斷是否能順利寫入Db中，可以回傳"新增成功"(201)，無法寫入則回傳"輸入錯誤，無法新增資料"(400)
-                try
-                {
-                    //若上傳的圖片不為null，才上傳圖片
-                    if (activityRoomInput.ActivityPicture != null)
-                    {
-                        //紀錄當前時間
-                        dateString = DateTime.Now.ToString("yyyyMMddHHmm_");
-                        //上傳檔案的檔案路徑
-                        string imagePath = $@"image/{dateString}{activityRoomInput.ActivityPicture.FileName}";
-
-                        //將檔案新增至指定路徑中
-                        using var strearm = new FileStream(imagePath, FileMode.Create);
-                        await activityRoomInput.ActivityPicture.CopyToAsync(strearm);
-                    }
-
-                    //新增房間資料至DB中
-                    RoomDataCenter.PostRoom(activityRoomInput, dateTime, dateString);
-                    RoomDataCenter.SeeSeaTestContext.SaveChanges();
-                }
-                catch (DbUpdateException)
-                {
-                    return BadRequest("輸入錯誤，無法新增資料");
-                }
-
-                return StatusCode((int)HttpStatusCode.Created, "新增成功");
-            }
-
-            return BadRequest("活動日期輸入格式錯誤，無法新增資料");
+            return string.IsNullOrEmpty(errorMessage) ? StatusCode((int)HttpStatusCode.Created, "新增成功") : BadRequest(errorMessage);
         }
 
         // GET: api/<GroupPairingController>
@@ -114,10 +70,10 @@ namespace GroupPairing_API.Controllers
         /// </summary>
         /// <returns>If the information exist, return the data.</returns>
         [HttpGet("Room")]
-        public ActionResult GetAllRoomDto()
+        public IActionResult GetAllRoomDto()
         {
             //取得所有房間列表，回傳房間列表資訊(200)，若沒有則回傳空的陣列(以ActivityRoomDto類別回傳)
-            return Ok(RoomDataCenter.GetRoomDto());
+            return Ok(RoomDataCenter.GetAllRoomDto());
         }
 
         // GET: api/<GroupPairingController>
@@ -127,10 +83,10 @@ namespace GroupPairing_API.Controllers
         /// </summary>
         /// <returns>If the information exist, return the data.</returns>
         [HttpGet("ActiveRoom")]
-        public ActionResult GetActiveRoomDto()
+        public ActionResult GetAllActiveRoomDto()
         {
             //取得所有"未確認"的房間列表，回傳房間列表資訊(200)，若沒有則回傳空的陣列(以ActivityRoomDto類別回傳)
-            return Ok(RoomDataCenter.GetActiveRoomDto());
+            return Ok(RoomDataCenter.GetAllActiveRoomDto());
         }
 
         // GET: api/<GroupPairingController>
@@ -144,6 +100,7 @@ namespace GroupPairing_API.Controllers
         public ActionResult GetRoomDto(int roomId)
         {
             ActivityRoomDto activityRoomDto = RoomDataCenter.GetRoomDto(roomId);
+
             return activityRoomDto != null ? Ok(activityRoomDto) : NotFound("查無資料");
         }
 
@@ -306,7 +263,7 @@ namespace GroupPairing_API.Controllers
         public ActionResult DeleteRoom(int roomId)
         {
             //透過ID尋找特定留言
-            ActivityRoom target = RoomDataCenter.GetRoom(roomId).SingleOrDefault();
+            ActivityRoom target = RoomDataCenter.GetActivityRoom(roomId);
 
             //若輸入的ID找不到留言，則回傳"查無此活動ID"(404)
             if (target == null)
@@ -339,7 +296,7 @@ namespace GroupPairing_API.Controllers
         public ActionResult PostMessage([FromBody] MessagePost messageInput)
         {
             //判斷活動ID是否存在於ActivityID列表中，若沒有則回傳"該活動ID不存在，無法新增資料"(400)
-            if (RoomDataCenter.GetRoom(messageInput.ActivityId) == null)
+            if (RoomDataCenter.GetActivityRoom(messageInput.ActivityId) == null)
             {
                 return BadRequest("該活動ID不存在，無法新增資料");
             }
@@ -590,7 +547,7 @@ namespace GroupPairing_API.Controllers
             try
             {
                 RoomDataCenter.PostActivityParticipant(activityId, userId);
-                ActivityRoom activityRoom = RoomDataCenter.GetRoom(activityId).SingleOrDefault();
+                ActivityRoom activityRoom = RoomDataCenter.GetActivityRoom(activityId);
                 activityRoom.CurrentParticipantNumber = ++activityRoom.CurrentParticipantNumber;
                 if (activityRoom.CurrentParticipantNumber >= activityRoom.ParticipantNumber)
                 {
